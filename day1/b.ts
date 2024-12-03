@@ -1,11 +1,13 @@
+import { toInt } from "../lib/string.ts";
+
 export const day1B = (textRows: string[]) => {
   const list1: number[] = [];
   const list2Counts: Map<number, number> = new Map();
   for (let i = 0; i < textRows.length; i++) {
     const splitRow = textRows[i].split("   ");
 
-    const firstNumber = parseInt(splitRow[0], 10);
-    const secondNumber = parseInt(splitRow[1], 10);
+    const firstNumber = toInt(splitRow[0]);
+    const secondNumber = toInt(splitRow[1]);
     list1.push(firstNumber);
 
     list2Counts.set(secondNumber, (list2Counts.get(secondNumber) ?? 0) + 1);

@@ -1,3 +1,5 @@
+import { toInt } from "../lib/string.ts";
+
 const regex = /(mul\((\d{1,3}),(\d{1,3})\))|(don't\(\))|(do\(\))/g;
 export const day3B = (textRows: string[]) => {
   let enabled = true;
@@ -13,7 +15,7 @@ export const day3B = (textRows: string[]) => {
           enabled = false;
         } else {
           if (enabled) {
-            sum += parseInt(singleMul[2], 10) * parseInt(singleMul[3], 10);
+            sum += toInt(singleMul[2]) * toInt(singleMul[3]);
           }
         }
       }

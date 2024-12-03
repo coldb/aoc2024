@@ -1,7 +1,9 @@
+import { toInt } from "../lib/string.ts";
+
 export const day2A = (textRows: string[]) => {
   let safe = 0;
   for (let i = 0; i < textRows.length; i++) {
-    const numbers = textRows[i].split(" ").map((item) => parseInt(item, 10));
+    const numbers = textRows[i].split(" ").map(toInt);
 
     const direction = numbers[0] < numbers[1] ? "inc" : "dec";
 

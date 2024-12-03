@@ -14,6 +14,7 @@ import { day7A } from "./day7/a.ts";
 import { day7B } from "./day7/b.ts";
 import { readData } from "./lib/file.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
+import { toInt } from "./lib/string.ts";
 
 const runners: {
   [key: number]: {
@@ -44,7 +45,7 @@ console.log("-----------------------");
 
 const step = flags.step === "a" ? "a" : "b";
 
-const dayNr = parseInt(flags.day, 10);
+const dayNr = toInt(flags.day);
 const data = await readData(dayNr, flags.data);
 
 if (flags.debug) {
