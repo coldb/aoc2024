@@ -1,4 +1,4 @@
-export const day2A = async (textRows: string[]) => {
+export const day2A = (textRows: string[]) => {
   let safe = 0;
   for (let i = 0; i < textRows.length; i++) {
     const numbers = textRows[i].split(" ").map((item) => parseInt(item, 10));

@@ -9,8 +9,8 @@ import { parseArgs } from "jsr:@std/cli/parse-args";
 
 const runners: {
   [key: number]: {
-    a: (data: string[]) => Promise<string | number>;
-    b: (data: string[]) => Promise<string | number>;
+    a: (data: string[]) => string | number;
+    b: (data: string[]) => string | number;
   };
 } = {
   1: { a: day1A, b: day1B },

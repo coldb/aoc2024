@@ -1,5 +1,5 @@
 const regex = /(mul\((\d{1,3}),(\d{1,3})\))|(don't\(\))|(do\(\))/g;
-export const day3B = async (textRows: string[]) => {
+export const day3B = (textRows: string[]) => {
   let enabled = true;
   const allMatches = textRows
     .map((row) => [...row.matchAll(regex)])

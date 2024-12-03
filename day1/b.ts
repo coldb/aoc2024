@@ -1,4 +1,4 @@
-export const day1B = async (textRows: string[]) => {
+export const day1B = (textRows: string[]) => {
   const list1: number[] = [];
   const list2Counts: Map<number, number> = new Map();
   for (let i = 0; i < textRows.length; i++) {

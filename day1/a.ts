@@ -1,4 +1,4 @@
-export const day1A = async (textRows: string[]) => {
+export const day1A = (textRows: string[]) => {
   const list1: number[] = [];
   const list2: number[] = [];
   for (let i = 0; i < textRows.length; i++) {

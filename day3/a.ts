@@ -1,5 +1,5 @@
 const regex = /mul\(([0-9]{1,3}),([0-9]{1,3})\)/g;
-export const day3A = async (textRows: string[]) => {
+export const day3A = (textRows: string[]) => {
   const allMatches = textRows
     .map((row) => [...row.matchAll(regex)])
     .map((match) => {

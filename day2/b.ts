@@ -22,7 +22,7 @@ const isSafe = (numbers: number[]) => {
   return true;
 };
 
-export const day2B = async (textRows: string[]) => {
+export const day2B = (textRows: string[]) => {
   let safe = 0;
   for (let i = 0; i < textRows.length; i++) {
     const numbers = textRows[i].split(" ").map((item) => parseInt(item, 10));
