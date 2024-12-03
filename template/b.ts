@@ -1,3 +1,3 @@
-export const day40B = async (textRows: string[]) => {
+export const day40B = (textRows: string[]) => {
   return 0;
 };
