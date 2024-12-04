@@ -33,7 +33,6 @@ const modifiers = [
 export const day4A = (textRows: string[]) => {
   const data = textRows.map((row) => row.split(""));
 
-  // console.log(data);
   const width = data[0].length;
   const height = data.length;
   let total = 0;
