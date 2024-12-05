@@ -1,21 +1,15 @@
+import { arrayToMultiMap } from "../lib/array.ts";
 import { splitData, toInt } from "../lib/string.ts";
 import { isCorrectlyOrdered } from "./a.ts";
 
 export const day5B = (textRows: string[]) => {
   const [rulesText, orderingText] = splitData(textRows);
 
-  const rulesMap = new Map<string, string[]>();
-
-  for (let i = 0; i < rulesText.length; i++) {
-    const [before, after] = rulesText[i].split("|");
-    const existingRules = rulesMap.get(before);
-
-    if (existingRules === undefined) {
-      rulesMap.set(before, [after]);
-    } else {
-      existingRules.push(after);
-    }
-  }
+  const rulesMap = arrayToMultiMap(
+    rulesText.map((item) => item.split("|")),
+    ([key]) => key,
+    ([, value]) => value,
+  );
 
   let sum = 0;
   for (let i = 0; i < orderingText.length; i++) {
@@ -30,15 +24,7 @@ export const day5B = (textRows: string[]) => {
   return sum;
 };
 
-function fixOrdering(
-  rules: Map<string, string[]>,
-  orderToCheck: string[],
-  level: number = 0,
-) {
-  if (level > 1000) {
-    throw new Error("To much recursion");
-  }
-
+function fixOrdering(rules: Map<string, string[]>, orderToCheck: string[]) {
   const itemsLeft = [...orderToCheck];
   const placedItems: string[] = [];
 

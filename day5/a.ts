@@ -1,22 +1,15 @@
+import { arrayToMultiMap } from "../lib/array.ts";
 import { splitData, toInt } from "../lib/string.ts";
 
 export const day5A = (textRows: string[]) => {
   const [rulesText, orderingText] = splitData(textRows);
 
-  const rulesMap = new Map<string, string[]>();
+  const rulesMap = arrayToMultiMap(
+    rulesText.map((item) => item.split("|")),
+    ([key]) => key,
+    ([, value]) => value,
+  );
 
-  for (let i = 0; i < rulesText.length; i++) {
-    const [before, after] = rulesText[i].split("|");
-    const existingRules = rulesMap.get(before);
-
-    if (existingRules === undefined) {
-      rulesMap.set(before, [after]);
-    } else {
-      existingRules.push(after);
-    }
-  }
-
-  console.log(rulesMap);
   let sum = 0;
   for (let i = 0; i < orderingText.length; i++) {
     const orderToCheck = orderingText[i].split(",");
