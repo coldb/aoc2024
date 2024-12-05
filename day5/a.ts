@@ -16,6 +16,7 @@ export const day5A = (textRows: string[]) => {
     }
   }
 
+  console.log(rulesMap);
   let sum = 0;
   for (let i = 0; i < orderingText.length; i++) {
     const orderToCheck = orderingText[i].split(",");
@@ -26,46 +27,24 @@ export const day5A = (textRows: string[]) => {
   return sum;
 };
 
-function isCorrectlyOrdered(
+export function isCorrectlyOrdered(
   rules: Map<string, string[]>,
   orderToCheck: string[],
-  allowedItems?: string[],
-  checkedItems: string[] = [],
 ) {
-  if (orderToCheck.length === 0) {
-    return true;
-  }
+  const checkedPages = [orderToCheck[0]];
 
-  const currentPage = orderToCheck[0];
-  const currentOrderRules = rules.get(currentPage) ?? [];
+  for (let i = 1; i < orderToCheck.length; i++) {
+    const currentPage = orderToCheck[i];
+    const currentPageRules = rules.get(currentPage) ?? [];
 
-  for (const checkedPage of checkedItems) {
-    if (currentOrderRules.includes(checkedPage)) {
-      return false;
+    for (const checkedPage of checkedPages) {
+      if (currentPageRules.includes(checkedPage)) {
+        return false;
+      }
     }
+
+    checkedPages.push(currentPage);
   }
 
-  if (allowedItems === undefined) {
-    if (currentOrderRules === undefined) {
-      return false;
-    } else {
-      return isCorrectlyOrdered(
-        rules,
-        orderToCheck.slice(1),
-        currentOrderRules,
-        [...checkedItems, currentPage],
-      );
-    }
-  }
-
-  if (allowedItems.includes(currentPage)) {
-    return isCorrectlyOrdered(
-      rules,
-      orderToCheck.slice(1),
-      [...allowedItems, ...currentOrderRules],
-      [...checkedItems, currentPage],
-    );
-  }
-
-  return false;
+  return true;
 }
