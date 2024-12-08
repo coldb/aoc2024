@@ -22,12 +22,8 @@ function isValidEquation(
   parts: number[],
   accumulatedTotal: number = 0,
 ) {
-  if (accumulatedTotal === expectedTotal) {
-    return true;
-  }
-
   if (parts.length === 0) {
-    return false;
+    return accumulatedTotal === expectedTotal;
   }
 
   if (
