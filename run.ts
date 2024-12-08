@@ -14,6 +14,10 @@ import { day7A } from "./day7/a.ts";
 import { day7B } from "./day7/b.ts";
 import { day8A } from "./day8/a.ts";
 import { day8B } from "./day8/b.ts";
+import { day9A } from "./day9/a.ts";
+import { day9B } from "./day9/b.ts";
+import { day10A } from "./day10/a.ts";
+import { day10B } from "./day10/b.ts";
 import { readData } from "./lib/file.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { toInt } from "./lib/string.ts";
@@ -32,6 +36,8 @@ const runners: {
   6: { a: day6A, b: day6B },
   7: { a: day7A, b: day7B },
   8: { a: day8A, b: day8B },
+  9: { a: day9A, b: day9B },
+  10: { a: day10A, b: day10B },
 };
 
 const flags = parseArgs(Deno.args, {
