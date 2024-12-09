@@ -1,5 +1,7 @@
 import { toInt } from "../lib/string.ts";
 
+export const expected9A = 1928;
+
 export const day9A = (textRows: string[]) => {
   const diskMap = textRows[0].split("").map(toInt);
 
