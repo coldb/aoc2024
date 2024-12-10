@@ -16,8 +16,8 @@ import { day8A } from "./day8/a.ts";
 import { day8B } from "./day8/b.ts";
 import { day9A, expected9A } from "./day9/a.ts";
 import { day9B } from "./day9/b.ts";
-import { day10A } from "./day10/a.ts";
-import { day10B } from "./day10/b.ts";
+import { day10A, expected10A } from "./day10/a.ts";
+import { day10B, expected10B } from "./day10/b.ts";
 import { readData } from "./lib/file.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { toInt } from "./lib/string.ts";
@@ -78,7 +78,7 @@ const runners: {
   },
   10: {
     runners: { a: day10A, b: day10B },
-    // expected: { a: expected10A, b: expected10B },
+    expected: { a: expected10A, b: expected10B },
   },
 };
 
@@ -110,9 +110,9 @@ console.log("-----------------------");
 
 if (expectedResult !== undefined) {
   if (expectedResult === result) {
-    console.log(`${goodResult}: ${result}`);
+    console.log(`${goodResult} : ${result}`);
   } else {
-    console.log(`${badResult}: ${result}`);
+    console.log(`${badResult} : ${result} (expected: ${expectedResult})`);
   }
 } else {
   console.log("Result:", result);
