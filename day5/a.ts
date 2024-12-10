@@ -41,3 +41,9 @@ export function isCorrectlyOrdered(
 
   return true;
 }
+
+export const solution: DaySolution = {
+  fn: day5A,
+  expectedSample: -1,
+  expected: -1,
+};

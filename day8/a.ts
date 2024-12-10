@@ -67,3 +67,9 @@ function addAntinode(
     antinodes.add(`${x}-${y}`);
   }
 }
+
+export const solution: DaySolution = {
+  fn: day8A,
+  expectedSample: -1,
+  expected: -1,
+};

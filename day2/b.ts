@@ -43,3 +43,9 @@ export const day2B = (textRows: string[]) => {
 
   return safe;
 };
+
+export const solution: DaySolution = {
+  fn: day2B,
+  expectedSample: -1,
+  expected: -1,
+};

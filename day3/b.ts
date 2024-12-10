@@ -26,3 +26,9 @@ export const day3B = (textRows: string[]) => {
     return memo + item;
   }, 0);
 };
+
+export const solution: DaySolution = {
+  fn: day3B,
+  expectedSample: -1,
+  expected: -1,
+};

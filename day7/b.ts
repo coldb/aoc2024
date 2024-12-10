@@ -56,3 +56,9 @@ function isValidEquation(
 
   return false;
 }
+
+export const solution: DaySolution = {
+  fn: day7B,
+  expectedSample: -1,
+  expected: -1,
+};

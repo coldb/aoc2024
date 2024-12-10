@@ -71,3 +71,9 @@ export const day9B = (textRows: string[]) => {
 
   return checksum;
 };
+
+export const solution: DaySolution = {
+  fn: day9B,
+  expectedSample: -1,
+  expected: -1,
+};

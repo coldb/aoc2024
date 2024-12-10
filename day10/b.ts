@@ -55,3 +55,9 @@ function countPaths(data: number[][], x: number, y: number, visited: string[]) {
     }
   }
 }
+
+export const solution: DaySolution = {
+  fn: day10B,
+  expectedSample: 81,
+  expected: 1497,
+};

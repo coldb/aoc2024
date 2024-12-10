@@ -47,3 +47,9 @@ export const day9A = (textRows: string[]) => {
 
   return checksum;
 };
+
+export const solution: DaySolution = {
+  fn: day9A,
+  expectedSample: -1,
+  expected: -1,
+};

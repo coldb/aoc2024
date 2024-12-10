@@ -55,3 +55,9 @@ function countPaths(
     }
   }
 }
+
+export const solution: DaySolution = {
+  fn: day10A,
+  expectedSample: 36,
+  expected: 694,
+};

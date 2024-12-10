@@ -47,3 +47,9 @@ function fixOrdering(rules: Map<string, string[]>, orderToCheck: string[]) {
 
   return placedItems;
 }
+
+export const solution: DaySolution = {
+  fn: day5B,
+  expectedSample: -1,
+  expected: -1,
+};

@@ -45,3 +45,9 @@ export const day6A = (textRows: string[]) => {
 
   return visitedLocations.size;
 };
+
+export const solution: DaySolution = {
+  fn: day6A,
+  expectedSample: -1,
+  expected: -1,
+};

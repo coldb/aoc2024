@@ -1,4 +1,5 @@
 import { toInt } from "../lib/string.ts";
+import type { DaySolution } from "../types.ts";
 
 export const day1A = (textRows: string[]) => {
   const list1: number[] = [];
@@ -17,4 +18,10 @@ export const day1A = (textRows: string[]) => {
   }
 
   return sum;
+};
+
+export const solution: DaySolution = {
+  fn: day1A,
+  expectedSample: 11,
+  expected: 1197984,
 };

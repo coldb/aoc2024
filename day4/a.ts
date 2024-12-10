@@ -54,3 +54,9 @@ export const day4A = (textRows: string[]) => {
   }
   return total;
 };
+
+export const solution: DaySolution = {
+  fn: day4A,
+  expectedSample: -1,
+  expected: -1,
+};
