@@ -137,7 +137,10 @@ async function runDay(day: string, step: string, data: string) {
 
   console.log("-----------------------");
 
+  const start = performance.now();
   const result = activePartSolution.fn(dayData);
+  const end = performance.now();
+
   const expectedResult =
     data === ""
       ? activePartSolution.expected
@@ -148,14 +151,14 @@ async function runDay(day: string, step: string, data: string) {
   if (expectedResult !== undefined && expectedResult !== -1) {
     if (expectedResult === result) {
       console.log(
-        `day ${dayNr}: ${goodResult} ${RESET}: ${ORANGE}${result}${RESET}${data === "sample" ? " (sample)" : ""}`,
+        `day ${dayNr}: ${goodResult} ${RESET}: ${ORANGE}${result}${RESET}${data === "sample" ? " (sample)" : ""} ${end - start}ms`,
       );
     } else {
       console.log(
-        `day ${dayNr}: ${badResult} ${RESET}: ${ORANGE}${result}${RESET} (expected: ${expectedResult})${data === "sample" ? " (sample)" : ""}`,
+        `day ${dayNr}: ${badResult} ${RESET}: ${ORANGE}${result}${RESET} (expected: ${expectedResult})${data === "sample" ? " (sample)" : ""} ${end - start}ms`,
       );
     }
   } else {
-    console.log(`day ${dayNr}: ${ORANGE}${result}`);
+    console.log(`day ${dayNr}: ${ORANGE}${result} ${end - start}ms`);
   }
 }
