@@ -52,8 +52,6 @@ function _print(stone: Stone) {
     stones.push(currentStone.value);
     currentStone = currentStone.next;
   } while (currentStone !== undefined);
-
-  console.log(stones.join(" "));
 }
 
 function blink(stone: Stone) {

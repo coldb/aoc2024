@@ -1,94 +1,55 @@
 import { toInt } from "../lib/string.ts";
 import type { DaySolution } from "../types.ts";
 
-type Stone = {
-  value: number;
-  next?: Stone;
-};
-
 export const dayPart2 = (textRows: string[]) => {
   const stonesData = textRows[0].split(" ");
 
-  let startStone: Stone = { value: toInt(stonesData[0]) };
-  let previousStone: Stone | undefined = startStone;
+  let stones = new Map<string, number>();
 
-  for (let i = 1; i < stonesData.length; i++) {
-    const stoneData = stonesData[i];
-    const stone = { value: toInt(stoneData) };
-
-    if (startStone === undefined) {
-      startStone = stone;
-    }
-
-    if (previousStone !== undefined) {
-      previousStone.next = stone;
-    }
-
-    previousStone = stone;
+  for (const stoneData of stonesData) {
+    stones.set(stoneData, stones.get(stoneData) ?? 1);
   }
 
-  for (let i = 1; i <= 25; i++) {
-    blink(startStone);
+  for (let i = 1; i <= 75; i++) {
+    stones = blink(stones);
   }
 
-  return count(startStone);
+  return Array.from(stones.values()).reduce((memo, item) => memo + item, 0);
 };
 
-function count(stone: Stone) {
-  let stonesCount = 0;
-  let currentStone: Stone | undefined = stone;
-  do {
-    stonesCount++;
-    currentStone = currentStone.next;
-  } while (currentStone !== undefined);
+function blink(stones: Map<string, number>) {
+  const blinkedStones = new Map<string, number>();
+  for (const [stoneValue, stoneAmount] of stones.entries()) {
+    if (stoneValue === "0") {
+      blinkedStones.set("1", (blinkedStones.get("1") ?? 0) + stoneAmount);
+    } else if (stoneValue.length % 2 === 0) {
+      const middleIdx = stoneValue.length / 2;
+      const firstStoneChars = stoneValue.substring(0, middleIdx);
+      const secondStoneChars = stoneValue.substring(middleIdx);
 
-  return stonesCount;
-}
-
-function _print(stone: Stone) {
-  const stones: number[] = [];
-  let currentStone: Stone | undefined = stone;
-  do {
-    stones.push(currentStone.value);
-    currentStone = currentStone.next;
-  } while (currentStone !== undefined);
-
-  console.log(stones.join(" "));
-}
-
-function blink(stone: Stone) {
-  let currentStone: Stone | undefined = stone;
-  do {
-    if (currentStone.value === 0) {
-      currentStone.value = 1;
-    } else if (currentStone.value.toString().length % 2 === 0) {
-      const stoneValueString = currentStone.value.toString();
-      const stoneValueChars = stoneValueString.length;
-      const firstStoneChars = stoneValueString.substring(
-        0,
-        stoneValueChars / 2,
+      blinkedStones.set(
+        firstStoneChars,
+        (blinkedStones.get(firstStoneChars) ?? 0) + stoneAmount,
       );
-      const secondStoneChars = stoneValueString.substring(stoneValueChars / 2);
+      const newSecondValue = toInt(secondStoneChars).toString();
 
-      const newStone: Stone = {
-        value: toInt(secondStoneChars),
-        next: currentStone.next,
-      };
-
-      currentStone.value = toInt(firstStoneChars);
-      currentStone.next = newStone;
-
-      currentStone = newStone;
+      blinkedStones.set(
+        newSecondValue,
+        (blinkedStones.get(newSecondValue) ?? 0) + stoneAmount,
+      );
     } else {
-      currentStone.value = currentStone.value * 2024;
+      const newValue = (toInt(stoneValue) * 2024).toString();
+      blinkedStones.set(
+        newValue,
+        (blinkedStones.get(newValue) ?? 0) + stoneAmount,
+      );
     }
-
-    currentStone = currentStone.next;
-  } while (currentStone !== undefined);
+  }
+  return blinkedStones;
 }
 
 export const solution: DaySolution = {
   fn: dayPart2,
-  expectedSample: -1,
-  expected: -1,
+  expectedSample: 65601038650482,
+  expected: 244782991106220,
 };
