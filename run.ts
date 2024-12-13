@@ -22,6 +22,8 @@ import { solution as day11Part1 } from "./day11/a.ts";
 import { solution as day11Part2 } from "./day11/b.ts";
 import { solution as day12Part1 } from "./day12/a.ts";
 import { solution as day12Part2 } from "./day12/b.ts";
+import { solution as day13Part1 } from "./day13/a.ts";
+import { solution as day13Part2 } from "./day13/b.ts";
 import { readData } from "./lib/file.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { toInt } from "./lib/string.ts";
@@ -50,6 +52,7 @@ const solutions: {
   10: [day10Part1, day10Part2],
   11: [day11Part1, day11Part2],
   12: [day12Part1, day12Part2],
+  13: [day13Part1, day13Part2],
 };
 
 const flags = parseArgs(Deno.args, {
