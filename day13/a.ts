@@ -2,28 +2,7 @@ import { splitData, toInt } from "../lib/string.ts";
 import type { DaySolution } from "../types.ts";
 
 export const dayPart1 = (textRows: string[]) => {
-  const data = splitData(textRows);
-
-  const finalData = data.map((game) => {
-    const buttonAParts = game[0].split(" ");
-    const buttonBParts = game[1].split(" ");
-    const goalParts = game[2].split(" ");
-
-    const gameData: Game = {
-      buttonA: {
-        x: toInt(buttonAParts[2].substring(2, buttonAParts[2].length - 1)),
-        y: toInt(buttonAParts[3].substring(2)),
-      },
-      buttonB: {
-        x: toInt(buttonBParts[2].substring(2, buttonBParts[2].length - 1)),
-        y: toInt(buttonBParts[3].substring(2)),
-      },
-      goal: {
-        x: toInt(goalParts[1].substring(2, goalParts[1].length - 1)),
-        y: toInt(goalParts[2].substring(2)),
-      },
-    };
-
+  const finalData = parseGameData(textRows).map((gameData) => {
     const buttonAMax = Math.min(
       Math.floor(gameData.goal.x / gameData.buttonA.x),
       Math.floor(gameData.goal.y / gameData.buttonA.y),
@@ -75,6 +54,32 @@ export const dayPart1 = (textRows: string[]) => {
     .filter((value) => value !== Number.MAX_VALUE)
     .reduce((memo, item) => memo + item, 0);
 };
+
+export function parseGameData(textRows: string[], goalExtra: number = 0) {
+  const data = splitData(textRows);
+
+  return data.map((game) => {
+    const buttonAParts = game[0].split(" ");
+    const buttonBParts = game[1].split(" ");
+    const goalParts = game[2].split(" ");
+
+    return {
+      buttonA: {
+        x: toInt(buttonAParts[2].substring(2, buttonAParts[2].length - 1)),
+        y: toInt(buttonAParts[3].substring(2)),
+      },
+      buttonB: {
+        x: toInt(buttonBParts[2].substring(2, buttonBParts[2].length - 1)),
+        y: toInt(buttonBParts[3].substring(2)),
+      },
+      goal: {
+        x:
+          goalExtra + toInt(goalParts[1].substring(2, goalParts[1].length - 1)),
+        y: goalExtra + toInt(goalParts[2].substring(2)),
+      },
+    };
+  });
+}
 
 type Game = {
   buttonA: { x: number; y: number };
