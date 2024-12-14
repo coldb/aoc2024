@@ -77,7 +77,7 @@ async function runDays() {
     if (solutionPart1.expectedSample !== -1) {
       const data = await readData(dayNr, "sample");
 
-      const result = solutionPart1.fn(data);
+      const result = solutionPart1.fn(data, "sample");
 
       printResult(dayNr, 1, solutionPart1.expectedSample, result, "sample");
     }
@@ -93,7 +93,7 @@ async function runDays() {
     if (solutionPart2.expectedSample !== -1) {
       const data = await readData(dayNr, "sample");
 
-      const result = solutionPart2.fn(data);
+      const result = solutionPart2.fn(data, "sample");
 
       printResult(dayNr, 2, solutionPart2.expectedSample, result, "sample");
     }
@@ -147,7 +147,7 @@ async function runDay(day: string, step: string, data: string) {
   console.log("-----------------------");
 
   const start = performance.now();
-  const result = activePartSolution.fn(dayData);
+  const result = activePartSolution.fn(dayData, data);
   const end = performance.now();
 
   const expectedResult =

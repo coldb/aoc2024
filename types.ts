@@ -1,5 +1,5 @@
 export type DaySolution = {
-  fn: (data: string[]) => string | number;
+  fn: (data: string[], dataName?: string) => string | number;
   expected: string | number;
   expectedSample: string | number;
 };
