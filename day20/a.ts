@@ -1,6 +1,3 @@
-import { print } from "../lib/matrix.ts";
-import { createEmptyGraph } from "../lib/shortest_path.ts";
-import { toInt } from "../lib/string.ts";
 import type { DaySolution } from "../types.ts";
 
 const directions = [
@@ -12,128 +9,84 @@ const directions = [
 
 export const dayPart1 = (textRows: string[]) => {
   const maze = textRows.map((row) => row.split(""));
-  // print(maze);
 
-  let start = "";
-  let end = "";
+  let startX = -1;
+  let startY = -1;
   for (let y = 1; y < maze.length - 1; y++) {
     for (let x = 1; x < maze.length - 1; x++) {
       if (maze[y][x] === "S") {
-        start = `${x}-${y}`;
-      }
-      if (maze[y][x] === "E") {
-        end = `${x}-${y}`;
-        maze[y][x] = ".";
+        startX = x;
+        startY = y;
       }
     }
   }
 
-  const newGraph = createEmptyGraph();
+  let currentX = startX;
+  let currentY = startY;
+  let currentChar = maze[currentY][currentX];
+  let steps = 0;
+  const visited = new Set<string>([`${currentX}-${currentY}`]);
+  const stepsTaken: { x: number; y: number }[] = [{ x: currentX, y: currentY }];
 
-  const getNeigbors = (nodeKey: string) => {
-    const [pointX, pointY] = nodeKey.split("-").map(toInt);
+  while (currentChar !== "E") {
+    const nextDirection = directions.find((direction) => {
+      const nextX = currentX + direction.x;
+      const nextY = currentY + direction.y;
 
-    return directions.reduce((memo, modifier) => {
-      const newX = pointX + modifier.x;
-      const newY = pointY + modifier.y;
-
-      if (
-        newX >= 0 &&
-        newY >= 0 &&
-        newX < maze[0].length &&
-        newY < maze.length &&
-        maze[newY][newX] !== "#"
-      ) {
-        memo.set(`${newX}-${newY}`, 1);
+      if (visited.has(`${nextX}-${nextY}`)) {
+        return false;
       }
 
-      return memo;
-    }, new Map<string, number>());
-  };
+      const currentChar = maze[nextY][nextX];
 
-  const shortestPath = newGraph.djikstra(start, end, getNeigbors);
+      return currentChar === "." || currentChar === "E";
+    });
 
-  // console.log(start, end);
-  console.log(shortestPath.path);
-  console.log(shortestPath.cost);
+    if (nextDirection === undefined) {
+      throw new Error("No path found");
+    }
 
-  const pathPoints = shortestPath.path.map((point) =>
-    point.split("-").map(toInt),
-  );
+    steps++;
+    currentX = currentX + nextDirection.x;
+    currentY = currentY + nextDirection.y;
+    visited.add(`${currentX}-${currentY}`);
+    stepsTaken.push({ x: currentX, y: currentY });
+    currentChar = maze[currentY][currentX];
+  }
 
-  // console.log(start);
-  pathPoints.push(start.split("-").map(toInt));
+  let countAbove100 = 0;
+  for (let i = 0; i < stepsTaken.length; i++) {
+    const jumpStart = stepsTaken[i];
+    for (let j = i + 1; j < stepsTaken.length; j++) {
+      const jumpEnd = stepsTaken[j];
 
-  // console.log(pathPoints);
-
-  pathPoints.reverse();
-  let maxJump = 0;
-  let jump: number[][] = [];
-  const jumps = new Map<number, number>();
-  for (let i = 0; i < pathPoints.length; i++) {
-    const jumpStart = pathPoints[i];
-    for (let j = i + 1; j < pathPoints.length; j++) {
-      const jumpEnd = pathPoints[j];
-
-      const jumpLength = j - i - 2;
-      const startX = jumpStart[0];
-      const startY = jumpStart[1];
-      const endX = jumpEnd[0];
-      const endY = jumpEnd[1];
+      const stepsSaved = j - i - 2;
 
       if (
-        startX === endX &&
-        (maze[startY + 1][startX] === "#" ||
-          maze[startY - 1][startX] === "#") &&
-        (startY === endY + 2 || startY === endY - 2)
+        jumpStart.x === jumpEnd.x &&
+        (jumpStart.y === jumpEnd.y + 2 || jumpStart.y === jumpEnd.y - 2)
       ) {
-        if (jumpLength > maxJump) {
-          maxJump = jumpLength;
-          jump = [jumpStart, jumpEnd, i, j];
+        if (stepsSaved >= 100) {
+          countAbove100++;
         }
-        // maxJump = Math.max(maxJump, j - i - 2);
-        // console.log("up/down", j - i + 2);
-        jumps.set(jumpLength, (jumps.get(jumpLength) ?? 0) + 1);
       }
 
       if (
-        startY === endY &&
-        (maze[startY][startX - 1] === "#" ||
-          maze[startY][startX + 1] === "#") &&
-        (startX === endX + 2 || startX === endX - 2)
+        jumpStart.y === jumpEnd.y &&
+        (jumpStart.x === jumpEnd.x + 2 || jumpStart.x === jumpEnd.x - 2)
       ) {
-        if (jumpLength > maxJump) {
-          maxJump = jumpLength;
-          jump = [jumpStart, jumpEnd, i, j];
+        if (stepsSaved >= 100) {
+          countAbove100++;
         }
-        // console.log("left/right", j - i);
-        // maxJump = Math.max(maxJump, j - i - 2);
-        jumps.set(jumpLength, (jumps.get(jumpLength) ?? 0) + 1);
       }
     }
   }
-  console.log(maxJump);
-  console.log(jumps);
-  console.log(jump);
-  console.log(shortestPath.cost);
 
-  for (let i = 1; i <= jump[2]; i++) {
-    const point = pathPoints[i];
-
-    maze[point[1]][point[0]] = "X";
-  }
-
-  for (let i = jump[3]; i < pathPoints.length; i++) {
-    const point = pathPoints[i];
-
-    maze[point[1]][point[0]] = "O";
-  }
-  print(maze);
-  return shortestPath.cost - maxJump;
+  return countAbove100;
 };
 
 export const solution: DaySolution = {
   fn: dayPart1,
-  expectedSample: 20,
-  expected: -1,
+  expectedSample: -1,
+  expected: 1296,
 };
