@@ -28,3 +28,11 @@ export function arrayToMultiMap<
     return map;
   }, new Map<Key, Value[]>());
 }
+
+export function arraySum(array: number[]) {
+  return array.reduce((memo, item) => memo + item, 0);
+}
+
+export function arrayMultiply(array: number[]) {
+  return array.slice(1).reduce((memo, item) => memo * item, array[0]);
+}
