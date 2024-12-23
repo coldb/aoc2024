@@ -30,52 +30,50 @@ export const dayPart1 = (textRows: string[]) => {
 
     return value;
   }
-  console.log([regA, regB, regC], program);
 
   const output: number[] = [];
   while (pointer < program.length) {
     const opcode = program[pointer];
     const operand = program[pointer + 1];
 
-    let jumped = false;
-    // console.log(opcode);
-
-    switch (opcode) {
-      case 0: // adv
-        regA = Math.floor(regA / Math.pow(2, comboOperand(operand)));
+    // adv
+    if (opcode === 0) {
+      regA = regA >>> comboOperand(operand);
+    }
+    // bxl
+    else if (opcode === 1) {
+      regB = regB ^ operand;
+    }
+    // bst
+    else if (opcode === 2) {
+      regB = comboOperand(operand) % 8;
+    }
+    // jnz
+    else if (opcode === 3) {
+      if (regA === 0) {
         break;
-      case 1: // bxl
-        regB = regB ^ operand;
-        break;
-      case 2: // bst
-        regB = comboOperand(operand) % 8;
-        break;
-      case 3: // jnz
-        if (regA === 0) {
-          break;
-        }
-        pointer = operand;
-        jumped = true;
-        break;
-      case 4: // bxc
-        regB = regB ^ regC;
-        break;
-      case 5: // out
-        output.push(comboOperand(operand) % 8);
-        break;
-      case 6: // bdv
-        regB = Math.floor(regA / Math.pow(2, comboOperand(operand)));
-        break;
-      case 7: // bdv
-        regC = Math.floor(regA / Math.pow(2, comboOperand(operand)));
-        break;
+      }
+      pointer = operand;
+      continue;
+    }
+    // bxc
+    else if (opcode === 4) {
+      regB = regB ^ regC;
+    }
+    // out
+    else if (opcode === 5) {
+      output.push(comboOperand(operand) % 8);
+    }
+    // bdv
+    else if (opcode === 6) {
+      regB = regA >>> comboOperand(operand);
+    }
+    // bdv
+    else if (opcode === 7) {
+      regC = regA >>> comboOperand(operand);
     }
 
-    // console.log([regA, regB, regC], program);
-
-    if (jumped === false) {
-      pointer += 2;
-    }
+    pointer += 2;
   }
 
   return output.join(",");

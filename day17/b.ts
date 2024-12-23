@@ -1,115 +1,122 @@
 import { splitData, toInt } from "../lib/string.ts";
 import type { DaySolution } from "../types.ts";
 
-export const dayPart2 = (textRows: string[]) => {
-  const [registersStr, programStr] = splitData(textRows);
+function runProgram(programStr: string, registerA: number) {
+  const program = programStr.split(",").map(toInt);
+  let regA = registerA;
+  let regB = 0;
+  let regC = 0;
+  let pointer = 0;
 
-  const registers = registersStr.map((register) =>
-    toInt(register.split(": ")[1]),
-  );
+  function comboOperand(value: number) {
+    switch (value) {
+      case 7:
+        throw new Error("INVALID OPERAND");
 
-  const program = programStr[0].split(": ")[1].split(",").map(toInt);
-  const expected = [...program];
-
-  function tryRegA(value: number) {
-    let regA = value;
-    let regB = registers[1];
-    let regC = registers[2];
-    let pointer = 0;
-
-    function comboOperand(value: number) {
-      switch (value) {
-        case 7:
-          throw new Error("INVALID OPERAND");
-
-        case 6:
-          return regC;
-        case 5:
-          return regB;
-        case 4:
-          return regA;
-      }
-
-      return value;
-    }
-
-    // console.log([regA, regB, regC], program);
-
-    const output: number[] = [];
-    while (pointer < program.length) {
-      const opcode = program[pointer];
-      const operand = program[pointer + 1];
-
-      let jumped = false;
-      // console.log(opcode);
-
-      switch (opcode) {
-        case 0: // adv
-          regA = Math.floor(regA / Math.pow(2, comboOperand(operand)));
-          break;
-        case 1: // bxl
-          regB = regB ^ operand;
-          break;
-        case 2: // bst
-          regB = comboOperand(operand) % 8;
-          break;
-        case 3: // jnz
-          if (regA === 0) {
-            break;
-          }
-          pointer = operand;
-          if (pointer % 2 === 1) {
-            throw new Error("asdf");
-          }
-          jumped = true;
-          break;
-        case 4: // bxc
-          regB = regB ^ regC;
-          break;
-        case 5: // out
-          output.push(comboOperand(operand) % 8);
-
-          if (output[output.length - 1] !== expected[output.length - 1]) {
-            return undefined;
-          }
-          break;
-        case 6: // bdv
-          regB = Math.floor(regA / Math.pow(2, comboOperand(operand)));
-          break;
-        case 7: // bdv
-          regC = Math.floor(regA / Math.pow(2, comboOperand(operand)));
-          break;
-      }
-
-      // console.log([regA, regB, regC], program);
-
-      if (jumped === false) {
-        pointer += 2;
-      }
-    }
-
-    if (JSON.stringify(expected) !== JSON.stringify(output)) {
-      return undefined;
+      case 6:
+        return regC;
+      case 5:
+        return regB;
+      case 4:
+        return regA;
     }
 
     return value;
   }
 
-  let counter = 1;
-  let result = tryRegA(counter);
+  const output: number[] = [];
+  while (pointer < program.length) {
+    const opcode = program[pointer];
+    const operand = program[pointer + 1];
 
-  console.log(result);
+    // adv
+    if (opcode === 0) {
+      // Needs arithmetic to work since number goes over 32bit
+      regA = Math.floor(regA / Math.pow(2, comboOperand(operand)));
+      // regA = regA >>> comboOperand(operand);
+    }
+    // bxl
+    else if (opcode === 1) {
+      regB = regB ^ operand;
+    }
+    // bst
+    else if (opcode === 2) {
+      regB = comboOperand(operand) % 8;
+    }
+    // jnz
+    else if (opcode === 3) {
+      if (regA === 0) {
+        break;
+      }
+      pointer = operand;
+      continue;
+    }
+    // bxc
+    else if (opcode === 4) {
+      regB = regB ^ regC;
+    }
+    // out
+    else if (opcode === 5) {
+      output.push(comboOperand(operand) % 8);
+    }
+    // bdv
+    else if (opcode === 6) {
+      regB = regA >>> comboOperand(operand);
+    }
+    // bdv
+    else if (opcode === 7) {
+      regC = regA >>> comboOperand(operand);
+    }
 
-  while (result === undefined) {
-    counter++;
-    result = tryRegA(counter);
+    pointer += 2;
   }
 
-  return result;
+  return output.join(",");
+}
+
+const options = [0, 1, 2, 3, 4, 5, 6, 7];
+function solve(program: string, aRegister: number): number {
+  for (const option of options) {
+    const newA = aRegister * Math.pow(2, 3) + option;
+
+    const result = runProgram(program, newA);
+
+    if (result === program) {
+      return newA;
+    }
+
+    if (program.endsWith(result)) {
+      const solved = solve(program, newA);
+
+      if (solved > -1) {
+        return solved;
+      }
+    }
+  }
+
+  return -1;
+}
+
+export const dayPart2 = (textRows: string[]) => {
+  const [_, programStr] = splitData(textRows);
+
+  const program = programStr[0].split(": ")[1];
+
+  return solve(program, 0);
+  /*
+   2, 4: b = a % 8
+   1, 3: b = b ^ 3
+   7, 5: c = a >>> b
+   4, 7: b = b ^ c
+   0, 3: a = a >>> 3
+   1, 5: b = b ^ 5
+   5, 5: out b % 8
+   3, 0: if a !== 0 jump to 0
+   */
 };
 
 export const solution: DaySolution = {
   fn: dayPart2,
-  expectedSample: "4,6,3,5,6,3,5,2,1,0",
-  expected: "1,3,5,1,7,2,5,1,6",
+  expectedSample: -1,
+  expected: 236555997372013,
 };
