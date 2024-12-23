@@ -1,415 +1,173 @@
-import { toInt } from "../lib/string.ts";
+import { memoize } from "@std/cache";
+import {
+  permutations,
+  permutationsWithReplacement,
+  powerSet,
+} from "https://deno.land/x/combinatorics/mod.ts";
 import type { DaySolution } from "../types.ts";
+import { toInt } from "../lib/string.ts";
 
-const movementPadKeys = new Map<string, NumberPadKey>([
-  [
-    "<",
-    {
-      symbol: "<",
-      adjecent: [{ symbol: "v", direction: ">" }],
-    },
-  ],
-  [
-    "v",
-    {
-      symbol: "v",
-      adjecent: [
-        { symbol: "<", direction: "<" },
-        { symbol: ">", direction: ">" },
-        { symbol: "^", direction: "^" },
-      ],
-    },
-  ],
-  [
-    ">",
-    {
-      symbol: ">",
-      adjecent: [
-        { symbol: "v", direction: "<" },
-        { symbol: "A", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "^",
-    {
-      symbol: "^",
-      adjecent: [
-        { symbol: "v", direction: "v" },
-        { symbol: "A", direction: ">" },
-      ],
-    },
-  ],
-  [
-    "A",
-    {
-      symbol: "A",
-      adjecent: [
-        { symbol: "^", direction: "<" },
-        { symbol: ">", direction: "v" },
-      ],
-    },
-  ],
-]);
+const numberKeypad = [
+  ["7", "8", "9"],
+  ["4", "5", "6"],
+  ["1", "2", "3"],
+  [null, "0", "A"],
+];
 
-const numberPadKeys = new Map<string, NumberPadKey>([
-  [
-    "0",
-    {
-      symbol: "0",
-      adjecent: [
-        { symbol: "A", direction: ">" },
-        { symbol: "2", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "1",
-    {
-      symbol: "1",
-      adjecent: [
-        { symbol: "2", direction: ">" },
-        { symbol: "4", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "2",
-    {
-      symbol: "2",
-      adjecent: [
-        { symbol: "0", direction: "v" },
-        { symbol: "1", direction: "<" },
-        { symbol: "3", direction: ">" },
-        { symbol: "5", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "3",
-    {
-      symbol: "3",
-      adjecent: [
-        { symbol: "2", direction: "<" },
-        { symbol: "6", direction: "^" },
-        { symbol: "A", direction: "v" },
-      ],
-    },
-  ],
-  [
-    "4",
-    {
-      symbol: "4",
-      adjecent: [
-        { symbol: "1", direction: "v" },
-        { symbol: "5", direction: ">" },
-        { symbol: "7", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "5",
-    {
-      symbol: "5",
-      adjecent: [
-        { symbol: "2", direction: "v" },
-        { symbol: "4", direction: "<" },
-        { symbol: "6", direction: ">" },
-        { symbol: "8", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "6",
-    {
-      symbol: "6",
-      adjecent: [
-        { symbol: "3", direction: "v" },
-        { symbol: "5", direction: "<" },
-        { symbol: "9", direction: "^" },
-      ],
-    },
-  ],
-  [
-    "7",
-    {
-      symbol: "7",
-      adjecent: [
-        { symbol: "4", direction: "v" },
-        { symbol: "8", direction: ">" },
-      ],
-    },
-  ],
-  [
-    "8",
-    {
-      symbol: "8",
-      adjecent: [
-        { symbol: "5", direction: "v" },
-        { symbol: "7", direction: "<" },
-        { symbol: "9", direction: ">" },
-      ],
-    },
-  ],
-  [
-    "9",
-    {
-      symbol: "9",
-      adjecent: [
-        { symbol: "6", direction: "v" },
-        { symbol: "8", direction: "<" },
-      ],
-    },
-  ],
-  [
-    "A",
-    {
-      symbol: "A",
-      adjecent: [
-        { symbol: "0", direction: "<" },
-        { symbol: "3", direction: "^" },
-      ],
-    },
-  ],
-]);
+const movementKeypad = [
+  [null, "^", "A"],
+  ["<", "v", ">"],
+];
 
-type NumberPadKey = {
-  symbol: string;
-  adjecent: { symbol: string; direction: "<" | "v" | ">" | "^" }[];
-};
+const modifiers = [
+  { symbol: "^", x: 0, y: -1 },
+  { symbol: ">", x: 1, y: 0 },
+  { symbol: "v", x: 0, y: 1 },
+  { symbol: "<", x: -1, y: 0 },
+];
 
-function findPossibleNumbersPath(
-  targetCode: string[],
-  currentKeySymbol: string,
-  possiblePaths: Map<number, string[]>,
-  minLength: { count: number },
-  visited: string[] = [],
-  movements: string[] = [],
-) {
-  if (minLength.count < movements.length) {
-    return;
+const numberMoves = calculateAllKeypadMoves(numberKeypad);
+const movementMoves = calculateAllKeypadMoves(movementKeypad);
+
+function calculateAllKeypadMoves(keypad: (null | string)[][]) {
+  const possibleKeys: { v: string; x: number; y: number }[] = [];
+  const moves = new Map<string, string[]>();
+
+  for (let y = 0; y < keypad.length; y++) {
+    for (let x = 0; x < keypad[0].length; x++) {
+      if (keypad[y][x] === null) {
+        continue;
+      }
+
+      possibleKeys.push({ v: keypad[y][x], x, y });
+    }
   }
 
-  if (targetCode.length === 0) {
-    const path = movements.join("");
-    const sameLengthPaths = possiblePaths.get(path.length);
+  const possibleKeyPairs = permutationsWithReplacement(possibleKeys, 2);
 
-    if (sameLengthPaths !== undefined) {
-      sameLengthPaths.push(path);
-    } else {
-      possiblePaths.set(path.length, [path]);
-    }
-
-    minLength.count = Math.min(minLength.count, movements.length);
-    return;
-  }
-
-  const target = targetCode[0];
-  const keyDetails = numberPadKeys.get(currentKeySymbol)!;
-
-  keyDetails.adjecent.forEach((adjecentKey) => {
-    if (visited.includes(adjecentKey.symbol)) {
-      return;
-    }
-    if (adjecentKey.symbol === target) {
-      findPossibleNumbersPath(
-        targetCode.slice(1),
-        adjecentKey.symbol,
-        possiblePaths,
-        minLength,
-        [],
-        [...movements, adjecentKey.direction, "A"],
-      );
-    } else {
-      findPossibleNumbersPath(
-        targetCode,
-        adjecentKey.symbol,
-        possiblePaths,
-        minLength,
-        [...visited, currentKeySymbol],
-        [...movements, adjecentKey.direction],
-      );
-    }
-  });
-}
-
-function findPossibleMovementsPath(
-  targetCode: string[],
-  currentKeySymbol: string,
-  possiblePaths: Map<number, string[]>,
-  minLength: { count: number },
-  visited: string[] = [],
-  movements: string[] = [],
-) {
-  if (minLength.count < movements.length) {
-    return;
-  }
-
-  if (targetCode.length === 0) {
-    const path = movements.join("");
-    const sameLengthPaths = possiblePaths.get(path.length);
-
-    if (sameLengthPaths !== undefined) {
-      sameLengthPaths.push(path);
-    } else {
-      possiblePaths.set(path.length, [path]);
-    }
-
-    minLength.count = Math.min(minLength.count, movements.length);
-    return;
-  }
-
-  const target = targetCode[0];
-  const keyDetails = movementPadKeys.get(currentKeySymbol)!;
-
-  if (target === currentKeySymbol) {
-    findPossibleMovementsPath(
-      targetCode.slice(1),
-      currentKeySymbol,
-      possiblePaths,
-      minLength,
-      [],
-      [...movements, "A"],
+  possibleKeyPairs.forEach((combination) => {
+    const combinationMoves = calculateShortestPaths(
+      combination[0],
+      combination[1],
+      keypad,
     );
-  }
-  keyDetails.adjecent.forEach((adjecentKey) => {
-    if (visited.includes(adjecentKey.symbol)) {
-      return;
-    }
-    if (adjecentKey.symbol === target) {
-      findPossibleMovementsPath(
-        targetCode.slice(1),
-        adjecentKey.symbol,
-        possiblePaths,
-        minLength,
-        [],
-        [...movements, adjecentKey.direction, "A"],
-      );
-    } else {
-      findPossibleMovementsPath(
-        targetCode,
-        adjecentKey.symbol,
-        possiblePaths,
-        minLength,
-        [...visited, currentKeySymbol],
-        [...movements, adjecentKey.direction],
-      );
-    }
-  });
-}
-
-function addKeyPadLevel(combinations: string[]) {
-  let shortestCodes = Number.MAX_VALUE;
-  let shortestCombinations = new Set<string>();
-  const minLength = { count: Number.MAX_VALUE };
-  combinations.forEach((path) => {
-    const possiblePaths = new Map<number, string[]>();
-
-    findPossibleMovementsPath(path.split(""), "A", possiblePaths, minLength);
-
-    if (minLength.count < shortestCodes) {
-      shortestCombinations = new Set(possiblePaths.get(minLength.count));
-      shortestCodes = minLength.count;
-    } else if (minLength.count === shortestCodes) {
-      possiblePaths.get(minLength.count)?.forEach((combination) => {
-        shortestCombinations.add(combination);
-      });
-    }
+    moves.set(
+      `${combinationMoves.start}${combinationMoves.end}`,
+      combinationMoves.moves,
+    );
   });
 
-  return Array.from(shortestCombinations.values());
+  return moves;
 }
 
-function calculatePaths(paths: string[]) {
-  const cache = new Map<string, string[]>();
-
-  let shortestPath = Number.MAX_VALUE;
-  for (const path of paths) {
-    const segments = path
-      .split("A")
-      .slice(0, -1)
-      .map((segment) => `${segment}A`);
-
-    let pathTotal = 0;
-    for (const segment of segments) {
-      pathTotal += calculateSegment(segment, cache, 2);
-    }
-
-    if (pathTotal < shortestPath) {
-      shortestPath = pathTotal;
-    }
-  }
-
-  return shortestPath;
-}
-function calculateSegment(
-  segment: string,
-  cache: Map<string, string[]>,
-  level: number,
+function calculateShortestPaths(
+  startKey: { v: string; x: number; y: number },
+  endKey: { v: string; x: number; y: number },
+  keypad: (null | string)[][],
 ) {
-  if (level === 0) {
-    return segment.length;
+  const nextKeys: {
+    key: { v: string; x: number; y: number };
+    path: string;
+  }[] = [{ key: startKey, path: "" }];
+
+  let minLength = Number.MAX_VALUE;
+  const shortestMoves: string[] = [];
+  while (nextKeys.length > 0) {
+    const current = nextKeys.pop()!;
+
+    if (current.key.v === endKey.v) {
+      const path = `${current.path}A`;
+      shortestMoves.push(path);
+
+      minLength = path.length;
+    }
+
+    if (current.path.length >= minLength) {
+      continue;
+    }
+
+    modifiers.forEach((modifier) => {
+      const newX = current.key.x + modifier.x;
+      const newY = current.key.y + modifier.y;
+
+      if (
+        newX < 0 ||
+        newY < 0 ||
+        newX >= keypad[0].length ||
+        newY >= keypad.length ||
+        keypad[newY][newX] === null
+      ) {
+        return;
+      }
+
+      nextKeys.unshift({
+        key: { v: keypad[newY][newX], x: newX, y: newY },
+        path: `${current.path}${modifier.symbol}`,
+      });
+    });
   }
 
-  const cachedSegment = cache.get(segment);
+  return { start: startKey.v, end: endKey.v, moves: shortestMoves };
+}
+
+const calculateLength = memoize((from: string, to: string, level = 2) => {
+  const permutations = movementMoves.get(`${from}${to}`)!;
+  // console.log(from, to, permutations, level);
+
+  if (level === 1) {
+    return permutations[0].length;
+  }
+
   let minLength = Number.MAX_VALUE;
 
-  if (cachedSegment !== undefined) {
-    for (const path of cachedSegment) {
-      const segments = path
-        .split("A")
-        .slice(0, -1)
-        .map((segment) => `${segment}A`);
-
-      let pathLength = 0;
-      for (const segment of segments) {
-        pathLength += calculateSegment(segment, cache, level - 1);
-      }
-
-      if (pathLength < minLength) {
-        minLength = pathLength;
-      }
+  permutations.forEach((permutation) => {
+    let total = 0;
+    const toSolve = "A" + permutation;
+    for (let i = 0; i < toSolve.length - 1; i++) {
+      total += calculateLength(toSolve[i], toSolve[i + 1], level - 1);
     }
-  } else {
-    const segmentNextLevel = addKeyPadLevel([segment]);
-    cache.set(segment, segmentNextLevel);
 
-    for (const path of segmentNextLevel) {
-      const segments = path
-        .split("A")
-        .slice(0, -1)
-        .map((segment) => `${segment}A`);
-
-      let pathLength = 0;
-      for (const segment of segments) {
-        pathLength += calculateSegment(segment, cache, level - 1);
-      }
-
-      if (pathLength < minLength) {
-        minLength = pathLength;
-      }
-    }
-  }
-  return minLength;
-}
-export const dayPart1 = (textRows: string[]) => {
-  const codesToEnter = textRows.map((row) => row.split(""));
-
-  let total = 0;
-  codesToEnter.forEach((codeToEnter) => {
-    const possiblePaths = new Map<number, string[]>();
-    const minLength = { count: Number.MAX_VALUE };
-
-    findPossibleNumbersPath(codeToEnter, "A", possiblePaths, minLength);
-    const movements = possiblePaths.get(minLength.count)!;
-
-    const minLength2 = calculatePaths(movements);
-    const number = toInt(codeToEnter.slice(0, codeToEnter.length - 1).join(""));
-
-    total += number * minLength2;
+    minLength = Math.min(minLength, total);
   });
+  return minLength;
+});
+
+export function solveMovementLevels(codesToEnter: string[], levels = 2) {
+  let total = 0;
+  for (const codeToEnter of codesToEnter) {
+    let sequences: string[] = [""];
+
+    const codeToEnterWithPrefix = "A" + codeToEnter;
+    for (let i = 0; i < codeToEnterWithPrefix.length - 1; i++) {
+      const permutations = numberMoves.get(
+        `${codeToEnterWithPrefix[i]}${codeToEnterWithPrefix[i + 1]}`,
+      )!;
+
+      sequences = sequences
+        .map((sequence) =>
+          permutations.map((permutation) => sequence + permutation),
+        )
+        .flat();
+    }
+
+    let minSequence = Number.MAX_VALUE;
+    sequences.map((sequence) => {
+      let total = 0;
+      const toSolve = "A" + sequence;
+      for (let i = 0; i < toSolve.length - 1; i++) {
+        total += calculateLength(toSolve[i], toSolve[i + 1], levels);
+      }
+
+      minSequence = Math.min(minSequence, total);
+    });
+
+    total += toInt(codeToEnter.slice(0, -1)) * minSequence;
+  }
 
   return total;
+}
+export const dayPart1 = (textRows: string[]) => {
+  return solveMovementLevels(textRows, 2);
 };
 
 export const solution: DaySolution = {
