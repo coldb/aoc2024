@@ -1,56 +1,5 @@
-import { splitData, toInt } from "../lib/string.ts";
+import { splitData } from "../lib/string.ts";
 import type { DaySolution } from "../types.ts";
-
-type Operartion = {
-  i1: string;
-  i2: string;
-  outputKey: string;
-  operation: "AND" | "XOR" | "OR";
-};
-
-function solve(allOperations: Operartion[], startValues: Map<string, number>) {
-  const operations = Array.from(allOperations);
-  const values = new Map(startValues);
-
-  let lastOperationsCount = operations.length;
-  do {
-    for (let i = operations.length - 1; i >= 0; i--) {
-      const operation = operations[i];
-
-      if (values.has(operation.i1) && values.has(operation.i2)) {
-        operations.splice(i, 1);
-
-        const i1Value = values.get(operation.i1);
-        const i2Value = values.get(operation.i2);
-        if (operation.operation === "AND") {
-          values.set(
-            operation.outputKey,
-            i1Value === 1 && i1Value === i2Value ? 1 : 0,
-          );
-        } else if (operation.operation === "OR") {
-          values.set(
-            operation.outputKey,
-            i1Value === 0 && i2Value === 0 ? 0 : 1,
-          );
-        } else if (operation.operation === "XOR") {
-          values.set(operation.outputKey, i1Value !== i2Value ? 1 : 0);
-        }
-      }
-    }
-
-    if (lastOperationsCount === operations.length) {
-      return undefined;
-    }
-
-    lastOperationsCount = operations.length;
-  } while (operations.length > 0);
-
-  return Array.from(values.entries())
-    .filter(([key]) => key.startsWith("z"))
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([, v]) => v)
-    .reverse();
-}
 
 type OperationMap = Map<
   string,
@@ -61,6 +10,7 @@ type OperationMap = Map<
     operation: string;
   }
 >;
+
 export const dayPart2 = (textRows: string[]) => {
   const [, operationsStr] = splitData(textRows);
 
@@ -77,25 +27,16 @@ export const dayPart2 = (textRows: string[]) => {
     }),
   );
 
-  console.log(operations);
-
-  console.log("----");
-
-  const operationsList = [...operations.values()];
-
-  console.log(operationsList);
+  const outputs: string[] = [];
   for (const _ of [1, 2, 3, 4]) {
     const currentProgress = firstBadBit(operations);
     let found = false;
-    console.log(currentProgress);
-    for (let i = 0; i < operationsList.length; i++) {
-      for (let y = 0; y < operationsList.length; y++) {
-        if (i === y) {
+
+    for (const firstOperation of operations.values()) {
+      for (const secondOperation of operations.values()) {
+        if (firstOperation.outputKey === secondOperation.outputKey) {
           continue;
         }
-
-        const firstOperation = operationsList[i];
-        const secondOperation = operationsList[y];
 
         const firstOutput = firstOperation.outputKey;
         const secondOutput = secondOperation.outputKey;
@@ -103,13 +44,18 @@ export const dayPart2 = (textRows: string[]) => {
         firstOperation.outputKey = secondOutput;
         secondOperation.outputKey = firstOutput;
 
-        // console.log("b", firstBadBit(operations));
+        operations.set(secondOutput, firstOperation);
+        operations.set(firstOutput, secondOperation);
 
         if (firstBadBit(operations) > currentProgress) {
-          console.log(firstOutput, secondOutput);
+          outputs.push(firstOutput);
+          outputs.push(secondOutput);
           found = true;
           break;
         }
+
+        operations.set(firstOutput, firstOperation);
+        operations.set(secondOutput, secondOperation);
 
         firstOperation.outputKey = firstOutput;
         secondOperation.outputKey = secondOutput;
@@ -120,12 +66,8 @@ export const dayPart2 = (textRows: string[]) => {
       }
     }
   }
-  // for (let i = 0; i <= 45; i++) {
-  //   if (!verifyOutput(operations, i)) {
-  //     console.log(i);
-  //     break;
-  //   }
-  // }
+
+  return outputs.toSorted().join(",");
 };
 
 function firstBadBit(operations: OperationMap) {
@@ -155,7 +97,6 @@ function verifyXYParents(
 
 function verifyOutput(operations: OperationMap, depth: number): boolean {
   const outputKey = numberToWire("z", depth);
-  // console.log("veri", outputKey, depth);
   const operation = operations.get(outputKey);
   if (operation === undefined) {
     return false;
@@ -185,9 +126,13 @@ function verifyIntermediateXor(
   outputKey: string,
   depth: number,
 ): boolean {
-  // console.log("vx", outputKey, depth);
+  // console.log("intermediateXor", outputKey, depth);
 
-  const operation = operations.get(outputKey)!;
+  const operation = operations.get(outputKey);
+
+  if (operation === undefined) {
+    return false;
+  }
 
   return operation.operation === "XOR" && verifyXYParents(operation, depth);
 }
@@ -197,7 +142,7 @@ function verifyCarryBit(
   outputKey: string,
   depth: number,
 ): boolean {
-  // console.log("vc", outputKey, depth);
+  // console.log("carryBit", outputKey, depth);
 
   const operation = operations.get(outputKey);
 
@@ -225,7 +170,7 @@ function verifyDirectCarry(
   outputKey: string,
   depth: number,
 ): boolean {
-  // console.log("vd", outputKey, depth);
+  // console.log("directCarry", outputKey, depth);
 
   const operation = operations.get(outputKey);
 
@@ -241,7 +186,7 @@ function verifyRecarry(
   outputKey: string,
   depth: number,
 ): boolean {
-  // console.log("vr", outputKey, depth);
+  // console.log("recarry", outputKey, depth);
 
   const operation = operations.get(outputKey)!;
 
@@ -266,10 +211,12 @@ function printOutputTree(
     console.log(`${"  ".repeat(level)}(${outputKey})`);
     return;
   }
-  const operation = operations.get(outputKey);
+  const operation = operations.get(outputKey)!;
+
   if (operation.operation !== "AND") {
     return false;
   }
+
   console.log(
     `${"  ".repeat(level)}${operation.operation} (${operation.outputKey})`,
   );
@@ -278,58 +225,8 @@ function printOutputTree(
   printOutputTree(operations, operation.i1, level + 1);
 }
 
-function switchPair(
-  operations: Operartion[],
-  values: Map<string, number>,
-  expected: string,
-  bestProgress: number,
-  level: number,
-) {
-  if (level === 0) {
-    return false;
-  }
-
-  for (let i = 0; i < operations.length; i++) {
-    for (let y = 0; y < operations.length; y++) {
-      if (i === y) {
-        continue;
-      }
-
-      const firstOperation = operations[i];
-      const secondOperation = operations[y];
-
-      const firstOutput = firstOperation.outputKey;
-      const secondOutput = secondOperation.outputKey;
-      firstOperation.outputKey = secondOutput;
-      secondOperation.outputKey = firstOutput;
-
-      const newProgress = progress(operations, values, expected);
-
-      if (newProgress === -1) {
-        console.log(firstOutput, secondOutput, level);
-        return true;
-      }
-
-      if (newProgress > bestProgress) {
-        if (
-          switchPair(operations, values, expected, newProgress, level - 1) ===
-          true
-        ) {
-          console.log(firstOutput, secondOutput, level);
-          return true;
-        }
-      }
-
-      firstOperation.outputKey = firstOutput;
-      secondOperation.outputKey = secondOutput;
-    }
-  }
-
-  return false;
-}
-
 export const solution: DaySolution = {
   fn: dayPart2,
   expectedSample: -1,
-  expected: -1,
+  expected: "fkb,nnr,rdn,rqf,rrn,z16,z31,z37",
 };
