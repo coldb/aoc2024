@@ -15,3 +15,8 @@ deno task run --day=1 --step=2 --data=sample
 deno task run --day=1 --step=2 --data=sample --debug
 ```
 
+To run all days
+```
+deno task run
+```
+
