@@ -43,6 +43,6 @@ function isValidEquation(
 
 export const solution: DaySolution = {
   fn: day7A,
-  expectedSample: -1,
-  expected: -1,
+  expectedSample: 3749,
+  expected: 4998764814652,
 };

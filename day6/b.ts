@@ -118,6 +118,6 @@ function isLoop(
 
 export const solution: DaySolution = {
   fn: day6B,
-  expectedSample: -1,
-  expected: -1,
+  expectedSample: 6,
+  expected: 1911,
 };

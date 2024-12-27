@@ -77,6 +77,6 @@ function addAntinode(
 
 export const solution: DaySolution = {
   fn: day8B,
-  expectedSample: -1,
-  expected: -1,
+  expectedSample: 34,
+  expected: 1277,
 };

@@ -50,6 +50,6 @@ function fixOrdering(rules: Map<string, string[]>, orderToCheck: string[]) {
 
 export const solution: DaySolution = {
   fn: day5B,
-  expectedSample: -1,
-  expected: -1,
+  expectedSample: 123,
+  expected: 4151,
 };

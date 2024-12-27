@@ -30,5 +30,5 @@ export const day3B = (textRows: string[]) => {
 export const solution: DaySolution = {
   fn: day3B,
   expectedSample: -1,
-  expected: -1,
+  expected: 76729637,
 };
