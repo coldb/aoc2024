@@ -1,7 +1,6 @@
-import { print } from "../lib/matrix.ts";
-import { createEmptyGraph } from "../lib/shortest_path.ts";
-import { toInt } from "../lib/string.ts";
+import { BinaryHeap } from "jsr:@std/data-structures";
 import type { DaySolution } from "../types.ts";
+import { nodeKey } from "./a.ts";
 
 const directions = [
   { symbol: "^", x: 0, y: -1 },
@@ -11,138 +10,130 @@ const directions = [
 ];
 
 export const dayPart2 = (textRows: string[]) => {
-  const newGraph = createEmptyGraph();
+  const heap = new BinaryHeap<{
+    cost: number;
+    x: number;
+    y: number;
+    dir: number;
+    parent?: string;
+  }>((a, b) => a.cost - b.cost);
+
   const maze = textRows.map((row) => row.split(""));
 
-  let start = "";
-  let end = "";
+  let startX = -1;
+  let startY = -1;
   for (let y = 1; y < maze.length - 1; y++) {
     for (let x = 1; x < maze.length - 1; x++) {
       if (maze[y][x] === "S") {
-        start = `${x}-${y}|1`;
-      }
-      if (maze[y][x] === "E") {
-        end = `${x}-${y}`;
+        startX = x;
+        startY = y;
+        break;
       }
     }
   }
-  // print(maze);
-  for (let y = 1; y < maze.length - 1; y++) {
-    for (let x = 1; x < maze.length - 1; x++) {
-      const connections = directions.map((modifier) =>
-        maze[y + modifier.y][x + modifier.x] !== "#"
-          ? { x: x + modifier.x, y: y + modifier.y }
-          : undefined,
-      );
+
+  heap.push({ cost: 0, x: startX, y: startY, dir: 1 });
+  const minCost = new Map<string, number>([
+    [nodeKey({ x: startX, y: startY, dir: 1 }), 0],
+  ]);
+  const endNodeKeys = new Set<string>();
+
+  const backtrack = new Map<string, Set<string>>();
+  let bestCost = Number.MAX_VALUE;
+
+  while (!heap.isEmpty()) {
+    const currentNode = heap.pop()!;
+    const currentNodeKey = nodeKey(currentNode);
+
+    if (currentNode.cost > (minCost.get(currentNodeKey) ?? Number.MAX_VALUE)) {
+      continue;
+    }
+
+    minCost.set(currentNodeKey, currentNode.cost);
+
+    if (maze[currentNode.y][currentNode.x] === "E") {
+      if (currentNode.cost > bestCost) {
+        break;
+      }
+
+      bestCost = currentNode.cost;
+
+      endNodeKeys.add(currentNodeKey);
+    }
+
+    if (currentNode.parent) {
+      const currentBacktrack = backtrack.get(currentNodeKey);
+
+      if (currentBacktrack !== undefined) {
+        currentBacktrack.add(currentNode.parent);
+      } else {
+        backtrack.set(
+          currentNodeKey,
+          new Set(currentNode.parent !== undefined ? [currentNode.parent] : []),
+        );
+      }
+    }
+
+    for (let dirChange = 0; dirChange <= 3; dirChange++) {
+      const newDirection = (currentNode.dir + dirChange) % 4;
+      const modifier = directions[newDirection];
+      const turns = dirChange === 3 ? 1 : dirChange;
+      const newCost = currentNode.cost + turns * 1000 + 1;
+
+      const newX = currentNode.x + modifier.x;
+      const newY = currentNode.y + modifier.y;
+
+      if (maze[newY][newX] === "#") {
+        continue;
+      }
+
+      const newNode = {
+        cost: newCost,
+        x: newX,
+        y: newY,
+        dir: newDirection,
+        parent: currentNodeKey,
+      };
+      const newNodeKey = nodeKey(newNode);
+
+      if (newCost > (minCost.get(newNodeKey) ?? Number.MAX_VALUE)) {
+        continue;
+      }
+
+      heap.push(newNode);
     }
   }
-  // console.log(start, end);
 
-  const getNeigbors = (nodeKey) => {
-    const [pointStr, directionStr] = nodeKey.split("|");
+  const seen = new Set<string>();
+  const queue: string[] = Array.from(endNodeKeys.values());
 
-    const [pointX, pointY] = pointStr.split("-").map(toInt);
-    const direction = toInt(directionStr);
+  const uniqueNodes = new Set<string>(
+    Array.from(endNodeKeys).map((end) => end.split("-").slice(0, 2).join("-")),
+  );
 
-    // console.log(pointX, pointY, direction);
+  while (queue.length > 0) {
+    const current = queue.shift()!;
 
-    const connections = [0, 1, 2, 3]
-      .map((modifierIdx) => {
-        const newDirection = (modifierIdx + direction) % 4;
-        const modifier = directions[newDirection];
-        const turns = modifierIdx === 3 ? 1 : modifierIdx;
-
-        return maze[pointY + modifier.y][pointX + modifier.x] !== "#"
-          ? {
-              x: pointX + modifier.x,
-              y: pointY + modifier.y,
-              direction: newDirection,
-              cost: turns * 1000 + 1,
-            }
-          : undefined;
-      })
-      .filter((connection) => connection !== undefined);
-
-    // console.log(connections);
-    return new Map<string, number>(
-      connections.map((connection) => [
-        `${connection.x}-${connection.y}|${connection.direction}`,
-        connection.cost,
-      ]),
+    const currentBacktrack = Array.from(
+      backtrack.get(current) ?? new Set<string>(),
     );
-  };
 
-  const shortestPath = newGraph.djikstra(start, end, getNeigbors);
+    currentBacktrack.forEach((item) => {
+      if (seen.has(item)) {
+        return;
+      }
 
-  const bestCost = shortestPath.cost;
-
-  const allNodes = new Set(shortestPath.path.map((item) => item.split("|")[0]));
-
-  // console.log(shortestPath.path);
-  let count = 0;
-  for (let i = 1; i < shortestPath.path.length; i++) {
-    const maze2 = textRows.map((row) => row.split(""));
-    const to = shortestPath.path[i];
-
-    const [pointX, pointY] = shortestPath.path[i]
-      .split("|")[0]
-      .split("-")
-      .map(toInt);
-    maze2[pointY][pointX] = "#";
-    // console.log(pointX, pointY);
-    const getNeigbors2 = (nodeKey) => {
-      const [pointStr, directionStr] = nodeKey.split("|");
-
-      const [pointX, pointY] = pointStr.split("-").map(toInt);
-      const direction = toInt(directionStr);
-
-      // console.log(pointX, pointY, direction);
-
-      const connections = [0, 1, 2, 3]
-        .map((modifierIdx) => {
-          const newDirection = (modifierIdx + direction) % 4;
-          const modifier = directions[newDirection];
-          const turns = modifierIdx === 3 ? 1 : modifierIdx;
-
-          return maze2[pointY + modifier.y][pointX + modifier.x] !== "#"
-            ? {
-                x: pointX + modifier.x,
-                y: pointY + modifier.y,
-                direction: newDirection,
-                cost: turns * 1000 + 1,
-              }
-            : undefined;
-        })
-        .filter((connection) => connection !== undefined);
-
-      // console.log(connections);
-      return new Map<string, number>(
-        connections.map((connection) => [
-          `${connection.x}-${connection.y}|${connection.direction}`,
-          connection.cost,
-        ]),
-      );
-    };
-
-    const shortestPath2 = newGraph.djikstra(start, end, getNeigbors2);
-
-    if (shortestPath2.cost === shortestPath.cost) {
-      shortestPath2.path.forEach((path) => {
-        allNodes.add(path.split("|")[0]);
-      });
-    }
-
-    count++;
-    console.log(count, shortestPath.path.length);
-    // console.log(shortestPath2);
+      seen.add(item);
+      uniqueNodes.add(item.split("-").slice(0, 2).join("-"));
+      queue.push(item);
+    });
   }
 
-  // console.log(allNodes, allNodes.size);
-  return allNodes.size + 1;
+  return uniqueNodes.size;
 };
 
 export const solution: DaySolution = {
   fn: dayPart2,
   expectedSample: 45,
-  expected: -1,
+  expected: 1024,
 };
